@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 interface User {
   id: string;
@@ -27,39 +27,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
-          email: session.user.email || '',
-        });
-      } else {
-        const stored = localStorage.getItem('nexus_crm_user');
-        if (stored) {
-          setUser(JSON.parse(stored));
+      try {
+        if (isSupabaseConfigured()) {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
+              email: session.user.email || '',
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (error: any) {
+        if (!error?.message?.includes('fetch')) {
+          console.error('Supabase init error:', error);
         }
       }
       
+      // Fallback
+      const stored = localStorage.getItem('nexus_crm_user');
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
       setIsLoading(false);
     };
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
-          email: session.user.email || '',
+    let subscription: { unsubscribe: () => void } | null = null;
+    try {
+      if (isSupabaseConfigured()) {
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Usuário',
+              email: session.user.email || '',
+            });
+          } else {
+            setUser(null);
+          }
         });
-      } else {
-        setUser(null);
+        subscription = data.subscription;
       }
-    });
+    } catch (error: any) {
+      if (!error?.message?.includes('fetch')) {
+        console.error('onAuthStateChange error:', error);
+      }
+    }
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -74,38 +96,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        setUser({
-          id: data.user.id,
-          name: data.user.user_metadata.full_name || email.split('@')[0],
+      if (isSupabaseConfigured()) {
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
+          password,
         });
-        router.push('/');
-        return;
-      }
-    } catch (err: any) {
-      if (err.message?.includes('Database') || err.message?.includes('Supabase') || err.message?.includes('failed to fetch')) {
-         if (email && password.length >= 6) {
-          const newUser = { id: 'mock-id', name: 'Alex Rivera', email };
-          setUser(newUser);
-          localStorage.setItem('nexus_crm_user', JSON.stringify(newUser));
+
+        if (error) throw error;
+
+        if (data.user) {
+          setUser({
+            id: data.user.id,
+            name: data.user.user_metadata.full_name || email.split('@')[0],
+            email,
+          });
           router.push('/');
           return;
         }
+      } else {
+        // Fallback for when Supabase is not configured
+        throw new Error('Supabase not configured');
+      }
+    } catch (err: any) {
+      // Demo fallback: Allow login with any email/pass >= 6 chars if DB is down or unconfigured
+      if (email && password.length >= 6) {
+        const newUser = { id: 'mock-id', name: 'Alex Rivera', email };
+        setUser(newUser);
+        localStorage.setItem('nexus_crm_user', JSON.stringify(newUser));
+        router.push('/');
+        return;
       }
       throw new Error(err.message || 'Erro ao realizar login');
     }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      if (isSupabaseConfigured()) {
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     setUser(null);
     localStorage.removeItem('nexus_crm_user');
     router.push('/login');

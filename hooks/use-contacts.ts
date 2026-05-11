@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
 export type ContactStatus = 'Lead' | 'Cliente' | 'Inativo';
@@ -30,7 +30,7 @@ export function useContacts() {
   const fetchContacts = async () => {
     setLoading(true);
     try {
-      if (user && user.id !== 'mock-id') {
+      if (user && user.id !== 'mock-id' && isSupabaseConfigured()) {
         const { data, error } = await supabase
           .from('contacts')
           .select('*')
@@ -49,7 +49,9 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      console.warn('Supabase fetch failed, falling back to LocalStorage:', err.message);
+      if (!err.message?.includes('fetch')) {
+        console.warn('Supabase fetch failed, falling back to LocalStorage:', err.message);
+      }
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -80,7 +82,7 @@ export function useContacts() {
       .slice(0, 2);
 
     try {
-      if (user && user.id !== 'mock-id') {
+      if (user && user.id !== 'mock-id' && isSupabaseConfigured()) {
         const { data, error } = await supabase
           .from('contacts')
           .insert([{
@@ -102,7 +104,9 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      console.warn('Supabase insert failed, using LocalStorage:', err.message);
+      if (!err.message?.includes('fetch')) {
+        console.warn('Supabase insert failed, using LocalStorage:', err.message);
+      }
     }
 
     const newContact: Contact = {
@@ -127,7 +131,7 @@ export function useContacts() {
       : undefined;
 
     try {
-      if (user && user.id !== 'mock-id') {
+      if (user && user.id !== 'mock-id' && isSupabaseConfigured()) {
         const { error } = await supabase
           .from('contacts')
           .update({
@@ -139,7 +143,9 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      console.warn('Supabase update failed, using LocalStorage:', err.message);
+      if (!err.message?.includes('fetch')) {
+        console.warn('Supabase update failed, using LocalStorage:', err.message);
+      }
     }
 
     setContacts(prev => {
@@ -158,7 +164,7 @@ export function useContacts() {
 
   const deleteContact = async (id: string) => {
     try {
-      if (user && user.id !== 'mock-id') {
+      if (user && user.id !== 'mock-id' && isSupabaseConfigured()) {
         const { error } = await supabase
           .from('contacts')
           .delete()
@@ -167,7 +173,9 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      console.warn('Supabase delete failed, using LocalStorage:', err.message);
+      if (!err.message?.includes('fetch')) {
+        console.warn('Supabase delete failed, using LocalStorage:', err.message);
+      }
     }
 
     setContacts(prev => {
