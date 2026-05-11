@@ -1,20 +1,28 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Nexus CRM - Enterprise Dashboard
 
-# Run and deploy your AI Studio app
+Este projeto está pronto para ser hospedado no **Vercel**.
 
-This contains everything you need to run your app locally.
+## Integração com Vercel
 
-View your app in AI Studio: https://ai.studio/apps/980af4af-bd1d-42e8-ab6c-fdc406e99cd0
+Siga os passos abaixo para garantir que tudo funcione corretamente:
 
-## Run Locally
+1. **GitHub**: Certifique-se de que o código está no seu repositório GitHub.
+2. **Dashboard do Vercel**: Importe o projeto no Vercel.
+3. **Variáveis de Ambiente**: No Vercel, adicione as seguintes variáveis (você pode encontrá-las no seu painel do Supabase):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. **Analytics e Speed Insights**: Já estão pré-configurados. Após o deploy, você verá as estatísticas no aba "Analytics" do seu projeto no Vercel.
 
-**Prerequisites:**  Node.js
+## Funcionalidades
 
+- Gerenciamento de contatos
+- Sistema de autenticação (fácil integração com Supabase Auth)
+- Layout responsivo e moderno (Tailwind CSS)
+- Métricas de performance e uso (Vercel Analytics)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Desenvolvimento Local
+
+```bash
+npm install
+npm run dev
+```

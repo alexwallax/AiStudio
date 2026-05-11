@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useContacts } from '@/hooks/use-contacts';
+import { useContacts, Contact } from '@/hooks/use-contacts';
+import ContactModal from '@/components/ContactModal';
 import { 
   Plus, 
   Search, 
@@ -16,14 +17,34 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function ContactsPage() {
-  const { contacts, loading, deleteContact } = useContacts();
+  const { contacts, loading, deleteContact, addContact, updateContact } = useContacts();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const filteredContacts = contacts.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleAdd = () => {
+    setSelectedContact(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (formData: Omit<Contact, 'id' | 'initials' | 'lastSeen' | 'createdAt'>) => {
+    if (selectedContact) {
+      await updateContact(selectedContact.id, formData);
+    } else {
+      await addContact(formData);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -33,11 +54,21 @@ export default function ContactsPage() {
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Contatos</h1>
             <p className="text-slate-500 font-medium">Gerencie sua rede de contatos e leads.</p>
           </div>
-          <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]">
+          <button 
+            onClick={handleAdd}
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+          >
             <Plus size={20} />
             Novo Contato
           </button>
         </header>
+
+        <ContactModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          contact={selectedContact}
+        />
 
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center">
@@ -133,7 +164,10 @@ export default function ContactsPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-blue-600">
+                            <button 
+                              onClick={() => handleEdit(contact)}
+                              className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-blue-600"
+                            >
                               <Edit size={16} />
                             </button>
                             <button 
