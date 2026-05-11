@@ -41,8 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         }
-      } catch (error: any) {
-        if (!error?.message?.includes('fetch')) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (!msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network')) {
           console.error('Supabase init error:', error);
         }
       }
@@ -73,8 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         subscription = data.subscription;
       }
-    } catch (error: any) {
-      if (!error?.message?.includes('fetch')) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (!msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network')) {
         console.error('onAuthStateChange error:', error);
       }
     }
@@ -97,36 +99,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       if (isSupabaseConfigured()) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          setUser({
-            id: data.user.id,
-            name: data.user.user_metadata.full_name || email.split('@')[0],
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
             email,
+            password,
           });
-          router.push('/');
-          return;
+
+          if (error) throw error;
+
+          if (data.user) {
+            setUser({
+              id: data.user.id,
+              name: data.user.user_metadata.full_name || email.split('@')[0],
+              email,
+            });
+            router.push('/');
+            return;
+          }
+        } catch (authErr: unknown) {
+          const error = authErr as Error;
+          const msg = error.message?.toLowerCase() || '';
+          // If it's a fetch/network error, we might want to fall back to mock
+          if (msg.includes('fetch') || msg.includes('network') || msg.includes('failed')) {
+            throw error; // Catch below will handle fallback
+          }
+          throw error;
         }
       } else {
         // Fallback for when Supabase is not configured
         throw new Error('Supabase not configured');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
+      
       // Demo fallback: Allow login with any email/pass >= 6 chars if DB is down or unconfigured
-      if (email && password.length >= 6) {
+      // We also fallback if it's a fetch/network error
+      const msg = error.message?.toLowerCase() || '';
+      const isFetchError = msg.includes('fetch') || msg.includes('network') || msg.includes('failed');
+      
+      if (email && (password.length >= 6 || isFetchError)) {
         const newUser = { id: 'mock-id', name: 'Alex Rivera', email };
         setUser(newUser);
         localStorage.setItem('nexus_crm_user', JSON.stringify(newUser));
         router.push('/');
         return;
       }
-      throw new Error(err.message || 'Erro ao realizar login');
+      throw new Error(error.message || 'Erro ao realizar login');
     }
   };
 

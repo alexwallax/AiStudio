@@ -19,8 +19,12 @@ export default function LoginPage() {
     
     try {
       await login(email, password);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Ocorreu um erro inesperado');
+      }
     } finally {
       setIsSubmitting(false);
     }

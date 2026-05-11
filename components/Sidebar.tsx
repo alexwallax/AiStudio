@@ -11,13 +11,10 @@ import {
   Settings, 
   HelpCircle,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   TrendingUp,
   FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'motion/react';
 import { useAuth } from '@/lib/auth';
 
 const navItems = [

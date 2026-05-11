@@ -49,7 +49,8 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      if (!err.message?.includes('fetch')) {
+      const msg = err.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
         console.warn('Supabase fetch failed, falling back to LocalStorage:', err.message);
       }
     }
@@ -104,7 +105,8 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      if (!err.message?.includes('fetch')) {
+      const msg = err.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
         console.warn('Supabase insert failed, using LocalStorage:', err.message);
       }
     }
@@ -143,7 +145,8 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      if (!err.message?.includes('fetch')) {
+      const msg = err.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
         console.warn('Supabase update failed, using LocalStorage:', err.message);
       }
     }
@@ -173,7 +176,8 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      if (!err.message?.includes('fetch')) {
+      const msg = err.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
         console.warn('Supabase delete failed, using LocalStorage:', err.message);
       }
     }

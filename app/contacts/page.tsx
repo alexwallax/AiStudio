@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useContacts, Contact } from '@/hooks/use-contacts';
+import { useContacts } from '@/hooks/use-contacts';
 import { 
   Plus, 
   Search, 
   Filter, 
-  MoreHorizontal, 
   Mail, 
-  Phone, 
   Building2,
   Trash2,
   Edit,
