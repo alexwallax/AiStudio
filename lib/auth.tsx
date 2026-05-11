@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { supabase, isSupabaseConfigured } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 interface User {
   id: string;
@@ -42,10 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : String(error);
-        if (!msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network')) {
-          console.error('Supabase init error:', error);
-        }
+        console.error('Supabase init error:', error);
       }
       
       // Fallback

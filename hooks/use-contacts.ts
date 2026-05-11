@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/auth';
 
 export type ContactStatus = 'Lead' | 'Cliente' | 'Inativo';
@@ -49,10 +49,7 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
-      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
-        console.warn('Supabase fetch failed, falling back to LocalStorage:', err.message);
-      }
+      console.error('Supabase fetch failed:', err.message || err);
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -105,10 +102,7 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
-      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
-        console.warn('Supabase insert failed, using LocalStorage:', err.message);
-      }
+      console.error('Supabase insert failed:', err.message || err);
     }
 
     const newContact: Contact = {
@@ -145,10 +139,7 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
-      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
-        console.warn('Supabase update failed, using LocalStorage:', err.message);
-      }
+      console.error('Supabase update failed:', err.message || err);
     }
 
     setContacts(prev => {
@@ -176,10 +167,7 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
-      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
-        console.warn('Supabase delete failed, using LocalStorage:', err.message);
-      }
+      console.error('Supabase delete failed:', err.message || err);
     }
 
     setContacts(prev => {
