@@ -49,7 +49,10 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      console.error('Supabase fetch failed:', err.message || err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('networkerror') && !msg.includes('failed to fetch')) {
+        console.error('Supabase fetch failed:', err.message || err);
+      }
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -102,7 +105,10 @@ export function useContacts() {
         }
       }
     } catch (err: any) {
-      console.error('Supabase insert failed:', err.message || err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('networkerror') && !msg.includes('failed to fetch')) {
+        console.error('Supabase insert failed:', err.message || err);
+      }
     }
 
     const newContact: Contact = {
@@ -139,7 +145,10 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      console.error('Supabase update failed:', err.message || err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('networkerror') && !msg.includes('failed to fetch')) {
+        console.error('Supabase update failed:', err.message || err);
+      }
     }
 
     setContacts(prev => {
@@ -167,7 +176,10 @@ export function useContacts() {
         if (error) throw error;
       }
     } catch (err: any) {
-      console.error('Supabase delete failed:', err.message || err);
+      const msg = err?.message?.toLowerCase() || '';
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('networkerror') && !msg.includes('failed to fetch')) {
+        console.error('Supabase delete failed:', err.message || err);
+      }
     }
 
     setContacts(prev => {

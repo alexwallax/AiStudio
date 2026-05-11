@@ -42,7 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error: unknown) {
-        console.error('Supabase init error:', error);
+        const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+        if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
+          console.error('Supabase init error:', error);
+        }
       }
       
       // Fallback
@@ -72,8 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscription = data.subscription;
       }
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
-      if (!msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network')) {
+      const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+      if (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('failed')) {
         console.error('onAuthStateChange error:', error);
       }
     }

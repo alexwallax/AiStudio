@@ -2,23 +2,39 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
 export const isSupabaseConfigured = () => {
-  if (!supabaseUrl || !supabaseAnonKey) return false;
-  const hasPlaceholder = supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder');
-  const hasValidUrl = supabaseUrl.startsWith('https://') && supabaseUrl.includes('.supabase.co');
-  return !hasPlaceholder && hasValidUrl;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!url || !key) return false;
+  
+  const hasPlaceholder = url.toLowerCase().includes('placeholder') || 
+                        url.toLowerCase().includes('example') ||
+                        key.toLowerCase().includes('placeholder') ||
+                        key.toLowerCase().includes('example');
+                        
+  const isValidUrlFormat = url.startsWith('https://') && url.includes('.supabase.co');
+  
+  // Stricter check: project URL should be at least ~20 chars (https://xxx.supabase.co)
+  return isValidUrlFormat && !hasPlaceholder && url.length > 20;
 };
 
-// Instead of a hard throw at module load which can break the whole app bundle/SSR,
-// we log a clear error and use a placeholder to avoid "undefined" errors in createClient
-if (!supabaseUrl || !supabaseAnonKey || (supabaseUrl && !supabaseUrl.startsWith('https://'))) {
-  console.warn('Supabase not properly configured. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.');
-}
+const supabaseUrlValue = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKeyValue = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const finalUrl = supabaseUrl && supabaseUrl.startsWith('https://') ? supabaseUrl : 'https://tmp.supabase.co';
-const finalKey = supabaseAnonKey || 'tmp';
+// Use a safe initialization
+const isConfigured = isSupabaseConfigured();
+const finalUrl = isConfigured && supabaseUrlValue ? supabaseUrlValue : 'https://cjrghcljthckcljthckc.supabase.co'; 
+const finalKey = isConfigured && supabaseAnonKeyValue ? supabaseAnonKeyValue : 'no-key-set';
 
-export const supabase = createClient(finalUrl, finalKey);
+export const supabase = createClient(finalUrl, finalKey, {
+  auth: {
+    persistSession: isConfigured,
+    autoRefreshToken: isConfigured,
+    detectSessionInUrl: isConfigured,
+    storageKey: 'nexus-crm-auth',
+  },
+  global: {
+    headers: { 'x-application-name': 'nexus-crm' },
+  },
+});

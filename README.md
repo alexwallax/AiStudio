@@ -13,6 +13,22 @@ Siga os passos abaixo para garantir que tudo funcione corretamente:
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 4. **Analytics e Speed Insights**: Já estão pré-configurados. Após o deploy, você verá as estatísticas no aba "Analytics" do seu projeto no Vercel.
 
+## Configuração do Supabase
+
+Para que o banco de dados funcione corretamente, você deve executar as migrations no SQL Editor do seu projeto Supabase:
+
+1. Acesse o **SQL Editor** no painel do Supabase.
+2. Copie e cole o conteúdo dos arquivos na pasta `supabase/migrations/`:
+   - `20260511000000_init_contacts.sql`: Cria a tabela de contatos e configura as permissões (RLS).
+   - `20260511000001_create_profiles.sql`: Configura o perfil automático do usuário.
+
+### Variáveis de Ambiente
+
+Certifique-se de configurar estas chaves no seu arquivo `.env` ou nas configurações do seu provedor de hospedagem:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
 ## Funcionalidades
 
 - Gerenciamento de contatos
